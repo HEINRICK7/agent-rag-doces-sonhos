@@ -37,9 +37,12 @@ sem paginação e filtros `search`, `categoryId` e `subcategoryId`. O cliente
 também implementa timeout, retry, correlation ID e autenticação opcional.
 
 O mapper preserva preços como `Decimal`, timestamps e referências de categoria,
-sem acoplar aplicação ou domínio ao payload externo. A chamada ao serviço em
-execução e decisões de moeda, remoção e imagem ainda são gates explícitos. Veja
-`docs/integrations/external-api.md`.
+sem acoplar aplicação ou domínio ao payload externo. O caso de uso
+`StartCatalogSyncUseCase` percorre todas as páginas, registra início, término e
+contadores, isola falhas por produto, impede duas execuções simultâneas e permite
+reprocessamento. A execução fica em memória nesta etapa; o Módulo 08 adicionará
+persistência durável. A chamada ao serviço real e decisões de moeda, remoção e
+imagem ainda são gates explícitos. Veja `docs/integrations/external-api.md`.
 
 ## Qualidade
 

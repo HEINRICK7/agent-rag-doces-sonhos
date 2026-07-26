@@ -16,3 +16,19 @@ somente valida o transporte, resolve casos de uso e converte respostas.
 
 `app/bootstrap.py` é o composition root. Ele é o único lugar que conhece a
 implementação concreta do repositório e registra as dependências no Punq.
+
+## Fluxo de ingestão disponível
+
+```text
+StartCatalogSyncUseCase
+  -> ProductSource.iter_pages
+  -> CatalogItemProcessor.process
+  -> CatalogSyncExecution
+  -> CatalogSyncExecutionRepository
+```
+
+O caso de uso é responsável por paginação, correlação, contadores, isolamento de
+falhas e concorrência. `ProductSource` e `CatalogItemProcessor` são portas da
+aplicação. Hoje a implementação do processador valida e mapeia o payload externo;
+os próximos módulos acrescentam normalização, persistência, imagens e indexação
+sem transferir essas responsabilidades para o orquestrador.

@@ -177,7 +177,7 @@ reproduzível.
 - [x] Mapper testado.
 - [x] Contratos documentados.
 
-## MÓDULO 05 — Pipeline de ingestão [ ]
+## MÓDULO 05 — Pipeline de ingestão [x]
 
 ### Fluxo
 
@@ -194,18 +194,24 @@ StartCatalogSync
 
 ### Tarefas
 
-- [ ] Criar caso de uso e entidade de execução da sincronização.
-- [ ] Registrar status, início, fim, recebidos, processados e falhas.
-- [ ] Percorrer todas as páginas sem perder o lote por falha de item.
-- [ ] Impedir execução concorrente.
-- [ ] Permitir reprocessamento.
-- [ ] Criar testes.
+- [x] Criar caso de uso e entidade de execução da sincronização.
+- [x] Registrar status, início, fim, recebidos, processados e falhas.
+- [x] Percorrer todas as páginas sem perder o lote por falha de item.
+- [x] Impedir execução concorrente.
+- [x] Permitir reprocessamento.
+- [x] Criar testes.
 
 ### Gate
 
-- [ ] Execução completa registrada.
-- [ ] Falha isolada não perde o lote.
-- [ ] Concorrência controlada.
+- [x] Execução completa registrada.
+- [x] Falha isolada não perde o lote.
+- [x] Concorrência controlada.
+
+O caso de uso controla o ciclo completo e delega o processamento unitário pela
+porta `CatalogItemProcessor`. O adapter atual valida e mapeia o contrato externo;
+normalização, persistência, imagens e indexação serão encadeadas nessa porta pelos
+módulos seguintes. As execuções permanecem em memória até o repositório durável do
+Módulo 08.
 
 ## MÓDULO 06 — Validação e normalização [ ]
 

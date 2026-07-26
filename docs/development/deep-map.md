@@ -35,11 +35,12 @@ Os caminhos do código são classificados automaticamente:
 
 Essa classificação alimenta a seção **Clean Architecture** da sidebar.
 
-O cliente externo, seus métodos, schemas e mapper aparecem como nós de
-Infraestrutura; os DTOs e o contrato `ProductSource` aparecem como Aplicação.
-Imports e chamadas detectáveis viram relações automaticamente. Um fluxo de
-execução completo somente será criado quando o Módulo 05 adicionar o caso de
-uso que orquestra origem, mapper e destinos.
+O cliente externo, seus métodos, schemas, mapper, processador e repositório em
+memória aparecem como nós de Infraestrutura. Os DTOs, portas e
+`StartCatalogSyncUseCase` aparecem como Aplicação; `CatalogSyncExecution` aparece
+como Domínio. Imports e chamadas detectáveis viram relações automaticamente, de
+modo que o fluxo do Módulo 05 é atualizado no mapa assim que esses arquivos ou
+seus estágios futuros mudarem.
 
 ## Atualização do roadmap
 
