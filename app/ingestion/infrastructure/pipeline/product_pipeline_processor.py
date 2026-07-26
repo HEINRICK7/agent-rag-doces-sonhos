@@ -5,7 +5,7 @@ from collections.abc import Mapping
 from app.catalog.application.usecases.build_product_from_import import (
     BuildProductFromImportUseCase,
 )
-from app.catalog.domain.entities.product import Product
+from app.catalog.domain.entities.product_sync import ProductUpsertResult
 from app.catalog.domain.repositories.product_repository import ProductRepository
 from app.ingestion.application.ports.catalog_item_processor import CatalogItemProcessor
 from app.ingestion.application.usecases.normalize_product import NormalizeProductUseCase
@@ -29,9 +29,9 @@ class ProductPipelineProcessor(CatalogItemProcessor):
         self,
         payload: Mapping[str, object],
         correlation_id: str,
-    ) -> Product:
+    ) -> ProductUpsertResult:
         del correlation_id
         mapped = map_external_product(payload)
         normalized = self._normalizer.execute(mapped)
         product = self._product_builder.execute(normalized)
-        return await self._products.upsert(product)
+        return await self._products.upsert_incremental(product)

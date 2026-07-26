@@ -27,7 +27,7 @@ StartCatalogSyncUseCase
        -> NormalizeProductUseCase
        -> BuildProductFromImportUseCase
        -> Product
-       -> ProductRepository.upsert
+       -> ProductRepository.upsert_incremental
        -> PostgreSQL
   -> CatalogSyncExecution
   -> CatalogSyncExecutionRepository
@@ -38,8 +38,9 @@ O caso de uso é responsável por paginação, correlação, contadores, isolame
 falhas e concorrência. `ProductSource` e `CatalogItemProcessor` são portas da
 aplicação. Hoje a implementação do processador valida e mapeia o payload externo;
 em seguida o normalizador cria o contrato canônico e o builder produz o agregado
-`Product`. O repositório persiste o agregado e o resultado da execução no
-PostgreSQL. Os próximos módulos acrescentam sincronização incremental,
+`Product`. O repositório calcula um fingerprint determinístico, classifica a
+mudança e persiste o agregado apenas quando o snapshot mudou; a execução grava
+contadores e evidências em `catalog_sync_changes`. Os próximos módulos acrescentam
 processamento de imagens e indexação sem transferir essas responsabilidades para
 o orquestrador.
 

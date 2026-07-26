@@ -30,6 +30,9 @@ class CatalogSyncExecutionModel(Base):
     received_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     processed_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     failed_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    created_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    updated_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    unchanged_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     failure_message: Mapped[str | None] = mapped_column(Text)
 
     failures: Mapped[list[CatalogSyncErrorModel]] = relationship(
@@ -37,6 +40,12 @@ class CatalogSyncExecutionModel(Base):
         cascade="all, delete-orphan",
         lazy="selectin",
         order_by="CatalogSyncErrorModel.position",
+    )
+    changes: Mapped[list[CatalogSyncChangeModel]] = relationship(
+        back_populates="execution",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+        order_by="CatalogSyncChangeModel.position",
     )
 
 
@@ -54,3 +63,20 @@ class CatalogSyncErrorModel(Base):
     message: Mapped[str] = mapped_column(Text, nullable=False)
 
     execution: Mapped[CatalogSyncExecutionModel] = relationship(back_populates="failures")
+
+
+class CatalogSyncChangeModel(Base):
+    __tablename__ = "catalog_sync_changes"
+
+    id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True)
+    execution_id: Mapped[str] = mapped_column(
+        ForeignKey("catalog_sync_executions.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    position: Mapped[int] = mapped_column(Integer, nullable=False)
+    item_reference: Mapped[str] = mapped_column(String(250), nullable=False)
+    kind: Mapped[str] = mapped_column(String(32), nullable=False)
+    previous_fingerprint: Mapped[str | None] = mapped_column(String(64))
+    current_fingerprint: Mapped[str] = mapped_column(String(64), nullable=False)
+
+    execution: Mapped[CatalogSyncExecutionModel] = relationship(back_populates="changes")

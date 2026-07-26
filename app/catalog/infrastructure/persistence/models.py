@@ -45,6 +45,7 @@ class ProductModel(Base):
     last_synced_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     source_created_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     source_updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    source_fingerprint: Mapped[str] = mapped_column(String(64), nullable=False)
 
     price_options: Mapped[list[ProductPriceOptionModel]] = relationship(
         back_populates="product",

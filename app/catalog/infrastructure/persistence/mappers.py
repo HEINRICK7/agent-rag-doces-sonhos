@@ -6,6 +6,7 @@ from app.catalog.domain.entities.category import Category
 from app.catalog.domain.entities.product import Product, ProductProtectedField
 from app.catalog.domain.entities.product_image import ProductImage
 from app.catalog.domain.entities.product_price_option import ProductPriceOption
+from app.catalog.domain.services.product_fingerprint import fingerprint_product
 from app.catalog.domain.value_objects.money import Money
 from app.catalog.domain.value_objects.product_availability import ProductAvailability
 from app.catalog.infrastructure.persistence.models import (
@@ -37,6 +38,7 @@ def update_product_model(model: ProductModel, product: Product) -> None:
     model.last_synced_at = product.last_synced_at
     model.source_created_at = product.source_created_at
     model.source_updated_at = product.source_updated_at
+    model.source_fingerprint = product.source_fingerprint or fingerprint_product(product)
     model.price_options = [
         ProductPriceOptionModel(
             product_id=product.id,
@@ -101,6 +103,7 @@ def product_to_domain(model: ProductModel) -> Product:
         protected_fields=frozenset(
             ProductProtectedField(field) for field in model.protected_fields
         ),
+        source_fingerprint=model.source_fingerprint,
     )
 
 

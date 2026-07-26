@@ -59,6 +59,14 @@ aparecem como Infraestrutura. O fluxo de sincronização também aponta para
 `CatalogSyncErrorModel`, permitindo visualizar onde produtos e rejeições ficam
 armazenados.
 
+O Módulo 09 adiciona ao grafo o fluxo semântico de sincronização incremental:
+`fingerprint_product` → `upsert_incremental` → `ProductUpsertResult` →
+`CatalogSyncExecution`. O mapa passa a mostrar os nós de evidência
+`CatalogSyncChange`, com contagem e estado `created`, `updated` ou `unchanged`.
+Como o Deep Map reanalisa arquivos locais, editar a regra, a migration ou o
+roadmap atualiza automaticamente os cards e o fluxo visual; não há snapshot
+manual para manter.
+
 ## Atualização do roadmap
 
 Edite somente

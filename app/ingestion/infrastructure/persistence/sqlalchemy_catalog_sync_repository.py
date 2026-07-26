@@ -12,11 +12,13 @@ from app.ingestion.application.ports.catalog_sync_repository import (
     CatalogSyncExecutionRepository,
 )
 from app.ingestion.domain.entities.catalog_sync_execution import (
+    CatalogSyncChange,
     CatalogSyncExecution,
     CatalogSyncItemFailure,
     CatalogSyncStatus,
 )
 from app.ingestion.infrastructure.persistence.models import (
+    CatalogSyncChangeModel,
     CatalogSyncErrorModel,
     CatalogSyncExecutionModel,
 )
@@ -42,7 +44,10 @@ class SqlAlchemyCatalogSyncExecutionRepository(CatalogSyncExecutionRepository):
             model = await session.get(
                 CatalogSyncExecutionModel,
                 execution.id,
-                options=(selectinload(CatalogSyncExecutionModel.failures),),
+                options=(
+                    selectinload(CatalogSyncExecutionModel.failures),
+                    selectinload(CatalogSyncExecutionModel.changes),
+                ),
             )
             if model is None:
                 session.add(_to_model(execution))
@@ -54,7 +59,10 @@ class SqlAlchemyCatalogSyncExecutionRepository(CatalogSyncExecutionRepository):
         async with self._session_factory() as session:
             result = await session.execute(
                 select(CatalogSyncExecutionModel)
-                .options(selectinload(CatalogSyncExecutionModel.failures))
+                .options(
+                    selectinload(CatalogSyncExecutionModel.failures),
+                    selectinload(CatalogSyncExecutionModel.changes),
+                )
                 .where(CatalogSyncExecutionModel.id == execution_id)
             )
             model = result.scalar_one_or_none()
@@ -80,6 +88,9 @@ def _update_model(
     model.received_count = execution.received_count
     model.processed_count = execution.processed_count
     model.failed_count = execution.failed_count
+    model.created_count = execution.created_count
+    model.updated_count = execution.updated_count
+    model.unchanged_count = execution.unchanged_count
     model.failure_message = execution.failure_message
     model.failures = [
         CatalogSyncErrorModel(
@@ -91,6 +102,18 @@ def _update_model(
             message=failure.message,
         )
         for position, failure in enumerate(execution.failures)
+    ]
+    model.changes = [
+        CatalogSyncChangeModel(
+            id=uuid4(),
+            execution_id=execution.id,
+            position=position,
+            item_reference=change.item_reference,
+            kind=change.kind,
+            previous_fingerprint=change.previous_fingerprint,
+            current_fingerprint=change.current_fingerprint,
+        )
+        for position, change in enumerate(execution.changes)
     ]
 
 
@@ -105,6 +128,9 @@ def _to_domain(model: CatalogSyncExecutionModel) -> CatalogSyncExecution:
         received_count=model.received_count,
         processed_count=model.processed_count,
         failed_count=model.failed_count,
+        created_count=model.created_count,
+        updated_count=model.updated_count,
+        unchanged_count=model.unchanged_count,
         failure_message=model.failure_message,
         failures=[
             CatalogSyncItemFailure(
@@ -113,6 +139,15 @@ def _to_domain(model: CatalogSyncExecutionModel) -> CatalogSyncExecution:
                 message=failure.message,
             )
             for failure in model.failures
+        ],
+        changes=[
+            CatalogSyncChange(
+                item_reference=change.item_reference,
+                kind=change.kind,
+                previous_fingerprint=change.previous_fingerprint,
+                current_fingerprint=change.current_fingerprint,
+            )
+            for change in model.changes
         ],
     )
 

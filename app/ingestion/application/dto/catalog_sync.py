@@ -5,6 +5,7 @@ from datetime import datetime
 
 from app.ingestion.application.dto.external_product_page import ProductFilters
 from app.ingestion.domain.entities.catalog_sync_execution import (
+    CatalogSyncChange,
     CatalogSyncExecution,
     CatalogSyncItemFailure,
     CatalogSyncStatus,
@@ -35,6 +36,10 @@ class CatalogSyncResult:
     reprocess_of: str | None
     failure_message: str | None
     failures: tuple[CatalogSyncItemFailure, ...]
+    created_count: int
+    updated_count: int
+    unchanged_count: int
+    changes: tuple[CatalogSyncChange, ...]
 
     @classmethod
     def from_execution(cls, execution: CatalogSyncExecution) -> "CatalogSyncResult":
@@ -50,4 +55,8 @@ class CatalogSyncResult:
             reprocess_of=execution.reprocess_of,
             failure_message=execution.failure_message,
             failures=tuple(execution.failures),
+            created_count=execution.created_count,
+            updated_count=execution.updated_count,
+            unchanged_count=execution.unchanged_count,
+            changes=tuple(execution.changes),
         )

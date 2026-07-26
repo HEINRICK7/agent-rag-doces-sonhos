@@ -23,6 +23,16 @@ class CatalogSyncItemFailure:
     message: str
 
 
+@dataclass(frozen=True, slots=True)
+class CatalogSyncChange:
+    """Evidence that one source item was created, updated or unchanged."""
+
+    item_reference: str
+    kind: str
+    previous_fingerprint: str | None
+    current_fingerprint: str
+
+
 @dataclass(slots=True)
 class CatalogSyncExecution:
     """Aggregate that records the observable result of a catalog synchronization."""
@@ -38,6 +48,10 @@ class CatalogSyncExecution:
     failed_count: int = 0
     failure_message: str | None = None
     failures: list[CatalogSyncItemFailure] = field(default_factory=list)
+    created_count: int = 0
+    updated_count: int = 0
+    unchanged_count: int = 0
+    changes: list[CatalogSyncChange] = field(default_factory=list)
 
     @property
     def is_running(self) -> bool:
@@ -49,9 +63,35 @@ class CatalogSyncExecution:
             raise ValueError("A quantidade recebida não pode ser negativa.")
         self.received_count += count
 
-    def register_processed(self) -> None:
+    def register_processed(
+        self,
+        *,
+        item_reference: str | None = None,
+        change_kind: str | None = None,
+        previous_fingerprint: str | None = None,
+        current_fingerprint: str | None = None,
+    ) -> None:
         self._ensure_running()
         self.processed_count += 1
+        if change_kind == "created":
+            self.created_count += 1
+        elif change_kind == "updated":
+            self.updated_count += 1
+        elif change_kind == "unchanged":
+            self.unchanged_count += 1
+        if (
+            item_reference is not None
+            and change_kind is not None
+            and current_fingerprint is not None
+        ):
+            self.changes.append(
+                CatalogSyncChange(
+                    item_reference=item_reference,
+                    kind=change_kind,
+                    previous_fingerprint=previous_fingerprint,
+                    current_fingerprint=current_fingerprint,
+                )
+            )
 
     def register_item_failure(self, failure: CatalogSyncItemFailure) -> None:
         self._ensure_running()

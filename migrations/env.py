@@ -11,6 +11,7 @@ from app.catalog.infrastructure.persistence.models import (  # noqa: F401
     ProductPriceOptionModel,
 )
 from app.ingestion.infrastructure.persistence.models import (  # noqa: F401
+    CatalogSyncChangeModel,
     CatalogSyncErrorModel,
     CatalogSyncExecutionModel,
 )

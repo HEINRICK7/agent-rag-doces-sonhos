@@ -281,22 +281,32 @@ isolado e aplicada no PostgreSQL local. O upsert mantém o UUID local, respeita
 campos protegidos e substitui preços e imagens na mesma transação. Um slot único
 e anulável garante somente uma sincronização ativa, sem limitar o histórico.
 
-## MÓDULO 09 — Sincronização incremental [ ]
+## MÓDULO 09 — Sincronização incremental [x]
 
 ### Tarefas
 
-- [ ] Escolher hash, data externa, versão, ETag ou comparação de campos.
-- [ ] Detectar produto novo, alterado, inalterado e removido.
-- [ ] Definir política de remoção.
-- [ ] Evitar reindexação desnecessária.
-- [ ] Registrar diferenças.
-- [ ] Testar idempotência.
+- [x] Escolher fingerprint SHA-256 canônico do snapshot externo.
+- [x] Detectar produto novo, alterado e inalterado.
+- [?] Detectar produto removido após a origem expor listagem completa ou tombstones.
+- [x] Definir política de remoção: não desativar automaticamente enquanto a API
+      entrega somente produtos ativos sem evidência de tombstone.
+- [x] Evitar reprocessamento downstream de produtos inalterados.
+- [x] Registrar diferenças, fingerprints anterior/atual e contadores por execução.
+- [x] Testar idempotência.
 
 ### Gate
 
-- [ ] Execuções repetidas não duplicam.
-- [ ] Inalterados não reprocessam.
-- [ ] Alterações são detectadas.
+- [x] Execuções repetidas não duplicam.
+- [x] Inalterados não reprocessam.
+- [x] Alterações são detectadas.
+
+O fingerprint é calculado em `app/catalog/domain/services` a partir dos campos
+fornecidos pela origem (identidade externa, conteúdo, disponibilidade, preços,
+imagens e timestamps de origem). A execução persiste `created_count`,
+`updated_count`, `unchanged_count` e cada mudança em `catalog_sync_changes`.
+Uma execução repetida retorna `unchanged` sem substituir o agregado nem acionar
+os estágios downstream. Remoções ficam explicitamente pendentes até existir
+uma garantia de completude na API externa.
 
 ## MÓDULO 10 — Imagens e MinIO [ ]
 

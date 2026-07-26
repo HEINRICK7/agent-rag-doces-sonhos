@@ -13,6 +13,7 @@ from app.catalog.domain.exceptions import (
     ExternalProductIdentityMismatchError,
     InvalidCatalogValueError,
 )
+from app.catalog.domain.services.product_fingerprint import fingerprint_product
 from app.catalog.domain.value_objects.money import Money
 from app.catalog.domain.value_objects.product_availability import ProductAvailability
 
@@ -169,3 +170,20 @@ class ProductTestCase(unittest.TestCase):
             replace(self.price, quantity=Decimal("0"))
         with self.assertRaises(InvalidCatalogValueError):
             replace(self.price, unit=" ")
+
+    def test_fingerprint_is_stable_and_tracks_source_changes_only(self) -> None:
+        product = self.product()
+        same_snapshot = self.product(
+            id=UUID("00000000-0000-0000-0000-000000000099"),
+            created_at=self.now + timedelta(days=1),
+            updated_at=self.now + timedelta(days=1),
+            last_synced_at=self.now + timedelta(days=1),
+        )
+
+        self.assertEqual(fingerprint_product(product), fingerprint_product(same_snapshot))
+        self.assertNotEqual(
+            fingerprint_product(product),
+            fingerprint_product(
+                self.product(price_options=(replace(self.price, price=Money(Decimal("11"), None)),))
+            ),
+        )

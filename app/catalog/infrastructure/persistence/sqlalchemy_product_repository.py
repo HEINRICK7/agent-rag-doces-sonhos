@@ -9,7 +9,9 @@ from sqlalchemy.orm import selectinload
 
 from app.catalog.application.exceptions import ProductPersistenceError
 from app.catalog.domain.entities.product import Product
+from app.catalog.domain.entities.product_sync import ProductChangeKind, ProductUpsertResult
 from app.catalog.domain.repositories.product_repository import ProductRepository
+from app.catalog.domain.services.product_fingerprint import fingerprint_product
 from app.catalog.infrastructure.persistence.mappers import (
     product_to_domain,
     product_to_model,
@@ -27,19 +29,48 @@ class SqlAlchemyProductRepository(ProductRepository):
         self._session_factory = session_factory
 
     async def upsert(self, product: Product) -> Product:
+        return (await self.upsert_incremental(product)).product
+
+    async def upsert_incremental(self, product: Product) -> ProductUpsertResult:
+        incoming_fingerprint = fingerprint_product(product)
         try:
             async with self._session_factory() as session, session.begin():
                 model = await self._find_by_external_id(session, product.external_id)
                 if model is None:
+                    product.source_fingerprint = incoming_fingerprint
                     session.add(product_to_model(product))
                     await session.flush()
-                    return product
+                    return ProductUpsertResult(
+                        product=product,
+                        change=ProductChangeKind.CREATED,
+                        previous_fingerprint=None,
+                        current_fingerprint=incoming_fingerprint,
+                    )
+
+                previous_fingerprint = model.source_fingerprint
+                if previous_fingerprint == incoming_fingerprint:
+                    current = product_to_domain(model)
+                    current.last_synced_at = product.last_synced_at
+                    model.last_synced_at = product.last_synced_at
+                    await session.flush()
+                    return ProductUpsertResult(
+                        product=current,
+                        change=ProductChangeKind.UNCHANGED,
+                        previous_fingerprint=previous_fingerprint,
+                        current_fingerprint=incoming_fingerprint,
+                    )
 
                 current = product_to_domain(model)
                 current.apply_external_snapshot(product, product.last_synced_at)
+                current.source_fingerprint = incoming_fingerprint
                 update_product_model(model, current)
                 await session.flush()
-                return current
+                return ProductUpsertResult(
+                    product=current,
+                    change=ProductChangeKind.UPDATED,
+                    previous_fingerprint=previous_fingerprint,
+                    current_fingerprint=incoming_fingerprint,
+                )
         except IntegrityError as error:
             raise ProductPersistenceError(product.external_id) from error
 

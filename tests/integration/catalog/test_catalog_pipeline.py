@@ -103,3 +103,7 @@ class DurableCatalogPipelineTestCase(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(stored_product.name, "Bolo artesanal")
         self.assertEqual(stored_product.description, "Descrição não informada.")
         self.assertEqual(stored_execution.processed_count, 1)
+        self.assertEqual(result.created_count, 1)
+        self.assertEqual(result.updated_count, 0)
+        self.assertEqual(result.unchanged_count, 0)
+        self.assertEqual(len(result.changes), 1)

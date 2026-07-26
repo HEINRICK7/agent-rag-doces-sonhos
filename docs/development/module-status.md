@@ -12,7 +12,7 @@ pelo Deep Map.
   cobertura total acima do gate de 80%.
 - Ruff, MyPy estrito, formatação e regras arquiteturais aprovados.
 - PostgreSQL, pgvector 0.8.0, Redis e MinIO validados em containers saudáveis.
-- Alembic está em `0003_create_catalog (head)`.
+- Alembic está em `0004_incremental_sync_evidence (head)`.
 - O endpoint `/api/v1/ready` comprova banco, pgvector, Redis, MinIO e bucket.
 - O contrato da API Doces Sonhos foi confirmado no código-fonte da origem:
   base local, rotas, filtros, listas sem paginação e schemas conhecidos.
@@ -26,5 +26,9 @@ pelo Deep Map.
   disponibilidade, sincronização e proteção contra sobrescrita externa.
 - Produtos, preços, imagens, categorias, execuções e rejeições possuem modelos,
   migration e persistência transacional no PostgreSQL.
+- A sincronização incremental calcula fingerprint SHA-256 determinístico,
+  classifica produtos como `created`, `updated` ou `unchanged`, evita trabalho
+  repetido e persiste a evidência de cada mudança. Remoções automáticas seguem
+  pendentes enquanto a API não fornecer tombstones ou uma listagem completa.
 - A validação contra a API em execução continua pendente; moeda, política de
   remoção e permanência das imagens ainda exigem decisão.

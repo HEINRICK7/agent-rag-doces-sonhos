@@ -42,6 +42,7 @@ class Product:
     source_created_at: datetime | None = None
     source_updated_at: datetime | None = None
     protected_fields: frozenset[ProductProtectedField] = field(default_factory=frozenset)
+    source_fingerprint: str | None = None
 
     def __post_init__(self) -> None:
         self.external_id = _required_identifier(self.external_id)
@@ -109,6 +110,7 @@ class Product:
         self.images = snapshot.images
         self.source_created_at = snapshot.source_created_at
         self.source_updated_at = snapshot.source_updated_at
+        self.source_fingerprint = snapshot.source_fingerprint
         self.last_synced_at = at
         self.updated_at = at
 

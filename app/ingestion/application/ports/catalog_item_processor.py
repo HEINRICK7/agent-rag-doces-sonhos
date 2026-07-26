@@ -3,7 +3,7 @@
 from collections.abc import Mapping
 from typing import Protocol
 
-from app.catalog.domain.entities.product import Product
+from app.catalog.domain.entities.product_sync import ProductUpsertResult
 
 
 class CatalogItemProcessor(Protocol):
@@ -13,4 +13,4 @@ class CatalogItemProcessor(Protocol):
         self,
         payload: Mapping[str, object],
         correlation_id: str,
-    ) -> Product: ...
+    ) -> ProductUpsertResult: ...

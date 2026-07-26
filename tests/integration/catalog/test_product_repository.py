@@ -9,6 +9,7 @@ from uuid import UUID
 from app.catalog.domain.entities.product import Product, ProductProtectedField
 from app.catalog.domain.entities.product_image import ProductImage
 from app.catalog.domain.entities.product_price_option import ProductPriceOption
+from app.catalog.domain.entities.product_sync import ProductChangeKind
 from app.catalog.domain.value_objects.money import Money
 from app.catalog.domain.value_objects.product_availability import ProductAvailability
 from app.catalog.infrastructure.persistence.models import CategoryModel  # noqa: F401
@@ -105,6 +106,30 @@ class SqlAlchemyProductRepositoryTestCase(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(updated.name, "Bolo atualizado")
         self.assertEqual(updated.price_options[0].price.amount, Decimal("15.00"))
         self.assertEqual(len(listed), 1)
+
+    async def test_incremental_upsert_classifies_created_unchanged_and_updated(self) -> None:
+        original = self.product()
+        created = await self.repository.upsert_incremental(original)
+        repeated = await self.repository.upsert_incremental(
+            self.product(
+                product_id="00000000-0000-0000-0000-000000000002",
+                synced_at=self.now + timedelta(hours=1),
+            )
+        )
+        changed = await self.repository.upsert_incremental(
+            self.product(
+                product_id="00000000-0000-0000-0000-000000000003",
+                amount="15",
+                synced_at=self.now + timedelta(hours=2),
+            )
+        )
+
+        self.assertEqual(created.change, ProductChangeKind.CREATED)
+        self.assertEqual(repeated.change, ProductChangeKind.UNCHANGED)
+        self.assertEqual(changed.change, ProductChangeKind.UPDATED)
+        self.assertEqual(changed.previous_fingerprint, repeated.current_fingerprint)
+        self.assertNotEqual(changed.previous_fingerprint, changed.current_fingerprint)
+        self.assertEqual(len(await self.repository.list(limit=10, offset=0)), 1)
 
     async def test_upsert_honors_persisted_field_protection(self) -> None:
         original = self.product()

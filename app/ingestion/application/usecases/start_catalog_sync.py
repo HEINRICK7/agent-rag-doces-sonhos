@@ -80,7 +80,7 @@ class StartCatalogSyncUseCase:
         payload: Mapping[str, object],
     ) -> None:
         try:
-            await self._processor.process(payload, execution.correlation_id)
+            result = await self._processor.process(payload, execution.correlation_id)
         except Exception as error:
             code = getattr(error, "code", type(error).__name__)
             execution.register_item_failure(
@@ -91,7 +91,12 @@ class StartCatalogSyncUseCase:
                 )
             )
         else:
-            execution.register_processed()
+            execution.register_processed(
+                item_reference=result.product.external_id,
+                change_kind=result.change.value,
+                previous_fingerprint=result.previous_fingerprint,
+                current_fingerprint=result.current_fingerprint,
+            )
 
 
 def _item_reference(payload: Mapping[str, object], fallback_index: int) -> str:

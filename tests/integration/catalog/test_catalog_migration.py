@@ -31,3 +31,32 @@ class CatalogMigrationTestCase(unittest.TestCase):
                 self.assertTrue(expected_tables.isdisjoint(inspect(connection).get_table_names()))
 
         engine.dispose()
+
+    def test_incremental_evidence_upgrade_and_downgrade(self) -> None:
+        engine = create_engine("sqlite:///:memory:")
+        base = importlib.import_module("migrations.versions.0003_create_catalog")
+        migration = importlib.import_module(
+            "migrations.versions.0004_incremental_sync_evidence"
+        )
+
+        with engine.begin() as connection:
+            operations = Operations(MigrationContext.configure(connection))
+            with patch.object(base, "op", operations):
+                base.upgrade()
+            with patch.object(migration, "op", operations):
+                migration.upgrade()
+                columns = {
+                    column["name"] for column in inspect(connection).get_columns("products")
+                }
+                self.assertIn("source_fingerprint", columns)
+                self.assertIn("catalog_sync_changes", inspect(connection).get_table_names())
+                migration.downgrade()
+                self.assertNotIn(
+                    "source_fingerprint",
+                    {column["name"] for column in inspect(connection).get_columns("products")},
+                )
+                self.assertNotIn("catalog_sync_changes", inspect(connection).get_table_names())
+            with patch.object(base, "op", operations):
+                base.downgrade()
+
+        engine.dispose()

@@ -20,8 +20,8 @@ docker-compose exec api alembic upgrade head
 O serviço `minio-init` cria o bucket configurado por `MINIO_BUCKET` de forma
 idempotente. PostgreSQL, Redis e MinIO usam volumes nomeados.
 
-O head atual é `0003_create_catalog`, que cria produtos, preços, imagens,
-categorias, execuções de sincronização e rejeições. O upgrade foi validado no
+O head atual é `0004_incremental_sync_evidence`, que acrescenta fingerprints de
+produtos, contadores e evidências de mudança às execuções. O upgrade foi validado no
 PostgreSQL local; o downgrade é testado em banco isolado para não remover dados
 do ambiente de desenvolvimento.
 
