@@ -4,7 +4,8 @@ Status: **contrato de ingestão v1 implementado; entidade de catálogo pendente*
 
 O contrato interno não reproduz o Pydantic nem o formato da API externa. O
 mapper da infraestrutura valida o transporte e entrega dataclasses imutáveis à
-aplicação.
+aplicação. `NormalizeProductUseCase` transforma essa entrada no formato canônico
+antes dos estágios de persistência e indexação.
 
 ## ProductImportInput
 
@@ -39,6 +40,11 @@ is_default: boolean
 O schema externo usa `Decimal(10,2)`. `float` não é usado no contrato interno.
 A API verificada não publica moeda; por isso o mapper não assume `BRL`.
 
+Na normalização, preços são arredondados para duas casas com `ROUND_HALF_UP`,
+quantidade deve ser positiva e existe exatamente uma opção padrão. Quando a
+origem não marca uma opção, a primeira é escolhida; quando marca mais de uma,
+somente a primeira permanece padrão.
+
 ## ProductAvailability
 
 Mapeamento atual:
@@ -65,6 +71,10 @@ uma política separada para detectar itens removidos.
 `storage_key`, checksum e metadados de mídia pertencem ao processamento de
 imagem do pipeline, não ao mapper externo.
 
+O normalizador aceita somente URL absoluta HTTP(S), remove fragmentos, elimina
+duplicatas e garante que apenas a primeira imagem seja principal. Isso não
+decide se o arquivo será mantido externamente ou copiado para o MinIO.
+
 ## Categoria e subcategoria
 
 `CategoryImportInput` preserva `id`, `name`, `icon`, `image`, `isActive`,
@@ -86,7 +96,7 @@ internos será responsabilidade do pipeline/repositório.
 
 ## Entidade de catálogo planejada
 
-O Módulo 05 transformará a entrada em uma entidade persistível com:
+O Módulo 07 transformará a entrada normalizada em uma entidade persistível com:
 
 - UUID interno;
 - `external_id` único por fonte;
@@ -101,9 +111,19 @@ O Módulo 05 transformará a entrada em uma entidade persistível com:
 - moeda padrão para preços sem `currency`;
 - política de produto removido ou desativado;
 - estratégia de imagem: externa, cópia ou híbrida;
-- fallback da descrição;
-- regra de opção de preço padrão quando a origem for inconsistente;
 - campos protegidos contra sobrescrita externa.
+
+## Regras de normalização decididas
+
+- nomes e descrições usam Unicode NFKC, espaços internos únicos e sem bordas;
+- nome e identificador externo vazios são rejeitados;
+- descrição vazia vira `Descrição não informada.`;
+- moeda é normalizada para três letras maiúsculas, sem moeda implícita;
+- estoque negativo ou não finito é rejeitado;
+- disponibilidade é derivada novamente de atividade e estoque;
+- categoria e subcategoria vazias viram ausência explícita;
+- preços e quantidades inválidos geram `ProductNormalizationError`;
+- rejeições são registradas na execução sem interromper os demais produtos.
 
 ## Gate
 

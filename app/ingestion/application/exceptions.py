@@ -92,3 +92,14 @@ class CatalogSyncFailedError(CatalogSyncError):
     def __init__(self, execution_id: str) -> None:
         self.execution_id = execution_id
         super().__init__(f"A sincronização {execution_id!r} falhou ao percorrer a fonte.")
+
+
+class ProductNormalizationError(Exception):
+    """Controlled rejection of a mapped product that violates the internal contract."""
+
+    code = "PRODUCT_NORMALIZATION_ERROR"
+
+    def __init__(self, field: str, reason: str) -> None:
+        self.field = field
+        self.reason = reason
+        super().__init__(f"Produto rejeitado no campo {field!r}: {reason}")

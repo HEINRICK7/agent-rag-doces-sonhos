@@ -10,12 +10,15 @@ from app.ingestion.application.ports.catalog_sync_repository import (
     CatalogSyncExecutionRepository,
 )
 from app.ingestion.application.ports.product_source import ProductSource
+from app.ingestion.application.usecases.normalize_product import NormalizeProductUseCase
 from app.ingestion.application.usecases.start_catalog_sync import StartCatalogSyncUseCase
 from app.ingestion.infrastructure.external_api.product_api_client import ProductApiClient
 from app.ingestion.infrastructure.persistence.in_memory_catalog_sync_repository import (
     InMemoryCatalogSyncExecutionRepository,
 )
-from app.ingestion.infrastructure.pipeline.mapping_product_processor import MappingProductProcessor
+from app.ingestion.infrastructure.pipeline.product_pipeline_processor import (
+    ProductPipelineProcessor,
+)
 from app.shared.configuration.settings import Settings
 from app.shared.infrastructure.database.session import create_engine, create_session_factory
 from app.shared.infrastructure.observability.health import InfrastructureHealth
@@ -45,7 +48,8 @@ def build_container(
     )
     infrastructure_health = InfrastructureHealth(engine, redis, minio, settings.minio_bucket)
     product_source = ProductApiClient(settings)
-    catalog_item_processor = MappingProductProcessor()
+    normalize_product = NormalizeProductUseCase()
+    catalog_item_processor = ProductPipelineProcessor(normalize_product)
     catalog_sync_executions = InMemoryCatalogSyncExecutionRepository()
     start_catalog_sync = StartCatalogSyncUseCase(
         product_source,
@@ -58,6 +62,7 @@ def build_container(
     container.register(ProductSource, instance=product_source)
     container.register(CatalogItemProcessor, instance=catalog_item_processor)
     container.register(CatalogSyncExecutionRepository, instance=catalog_sync_executions)
+    container.register(NormalizeProductUseCase, instance=normalize_product)
     container.register(StartCatalogSyncUseCase, instance=start_catalog_sync)
     container.register(UserRepository, instance=repository)
     container.register(CreateUserUseCase, instance=CreateUserUseCase(repository))

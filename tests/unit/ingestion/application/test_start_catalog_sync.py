@@ -17,12 +17,15 @@ from app.ingestion.application.exceptions import (
     CatalogSyncFailedError,
 )
 from app.ingestion.application.ports.product_source import ProductSource
+from app.ingestion.application.usecases.normalize_product import NormalizeProductUseCase
 from app.ingestion.application.usecases.start_catalog_sync import StartCatalogSyncUseCase
 from app.ingestion.domain.entities.catalog_sync_execution import CatalogSyncStatus
 from app.ingestion.infrastructure.persistence.in_memory_catalog_sync_repository import (
     InMemoryCatalogSyncExecutionRepository,
 )
-from app.ingestion.infrastructure.pipeline.mapping_product_processor import MappingProductProcessor
+from app.ingestion.infrastructure.pipeline.product_pipeline_processor import (
+    ProductPipelineProcessor,
+)
 
 from tests.fixtures.fake_product_source import FakeProductSource
 
@@ -117,7 +120,7 @@ class StartCatalogSyncUseCaseTestCase(unittest.IsolatedAsyncioTestCase):
     def build_use_case(self, source: ProductSource) -> StartCatalogSyncUseCase:
         return StartCatalogSyncUseCase(
             source,
-            MappingProductProcessor(),
+            ProductPipelineProcessor(NormalizeProductUseCase()),
             self.repository,
             clock=lambda: next(self.times),
             id_factory=lambda: "sync-1",
@@ -154,6 +157,18 @@ class StartCatalogSyncUseCaseTestCase(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.failed_count, 1)
         self.assertEqual(result.failures[0].item_reference, "product-invalid")
 
+    async def test_records_normalization_rejection_without_stopping_the_batch(self) -> None:
+        blank_name = product_payload("product-blank")
+        blank_name["name"] = " \n "
+        source = FakeProductSource([page(1, blank_name, product_payload("product-valid"))])
+
+        result = await self.build_use_case(source).execute(StartCatalogSyncCommand())
+
+        self.assertEqual(result.processed_count, 1)
+        self.assertEqual(result.failed_count, 1)
+        self.assertEqual(result.failures[0].item_reference, "product-blank")
+        self.assertEqual(result.failures[0].code, "PRODUCT_NORMALIZATION_ERROR")
+
     async def test_rejects_a_concurrent_execution(self) -> None:
         source = BlockingProductSource()
         use_case = self.build_use_case(source)
@@ -180,7 +195,7 @@ class StartCatalogSyncUseCaseTestCase(unittest.IsolatedAsyncioTestCase):
         )
         use_case = StartCatalogSyncUseCase(
             source,
-            MappingProductProcessor(),
+            ProductPipelineProcessor(NormalizeProductUseCase()),
             self.repository,
             clock=lambda: next(times),
             id_factory=lambda: next(ids),

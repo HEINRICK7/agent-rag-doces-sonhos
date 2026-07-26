@@ -8,8 +8,8 @@ pelo Deep Map.
 
 - Fundação funcional com API, módulo de usuários, SQLAlchemy, Alembic, Docker,
   testes, CI e documentação.
-- 45 testes na suíte padrão, teste real de infraestrutura aprovado e cobertura
-  total acima do gate de 80%.
+- Mais de 60 testes na suíte padrão, teste real de infraestrutura aprovado e
+  cobertura total acima do gate de 80%.
 - Ruff, MyPy estrito, formatação e regras arquiteturais aprovados.
 - PostgreSQL, pgvector 0.8.0, Redis e MinIO validados em containers saudáveis.
 - Alembic está em `0002_enable_pgvector (head)`.
@@ -20,5 +20,7 @@ pelo Deep Map.
   ID, erros explícitos, filtros confirmados e fake para testes.
 - O mapper externo → interno está concluído, preserva `Decimal` e timestamps,
   tolera evolução de campos e não acopla aplicação ou domínio ao Pydantic.
+- O pipeline percorre a fonte, controla concorrência e reprocessamento, registra
+  falhas por item e normaliza produtos em um contrato canônico.
 - A validação contra a API em execução continua pendente; moeda, política de
   remoção e permanência das imagens ainda exigem decisão.

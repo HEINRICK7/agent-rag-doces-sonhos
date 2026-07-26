@@ -22,7 +22,9 @@ implementação concreta do repositório e registra as dependências no Punq.
 ```text
 StartCatalogSyncUseCase
   -> ProductSource.iter_pages
-  -> CatalogItemProcessor.process
+  -> ProductPipelineProcessor
+       -> map_external_product
+       -> NormalizeProductUseCase
   -> CatalogSyncExecution
   -> CatalogSyncExecutionRepository
 ```
@@ -30,5 +32,6 @@ StartCatalogSyncUseCase
 O caso de uso é responsável por paginação, correlação, contadores, isolamento de
 falhas e concorrência. `ProductSource` e `CatalogItemProcessor` são portas da
 aplicação. Hoje a implementação do processador valida e mapeia o payload externo;
-os próximos módulos acrescentam normalização, persistência, imagens e indexação
-sem transferir essas responsabilidades para o orquestrador.
+em seguida o normalizador cria o contrato canônico. Os próximos módulos
+acrescentam domínio, persistência, imagens e indexação sem transferir essas
+responsabilidades para o orquestrador.

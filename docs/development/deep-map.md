@@ -42,6 +42,10 @@ como Domínio. Imports e chamadas detectáveis viram relações automaticamente,
 modo que o fluxo do Módulo 05 é atualizado no mapa assim que esses arquivos ou
 seus estágios futuros mudarem.
 
+O Módulo 06 acrescenta `NormalizeProductUseCase` entre o mapper externo e os
+destinos do pipeline. Rejeições aparecem como relações e evidências da execução,
+enquanto o roadmap é atualizado automaticamente pelos checklists concluídos.
+
 ## Atualização do roadmap
 
 Edite somente

@@ -208,27 +208,33 @@ StartCatalogSync
 - [x] Concorrência controlada.
 
 O caso de uso controla o ciclo completo e delega o processamento unitário pela
-porta `CatalogItemProcessor`. O adapter atual valida e mapeia o contrato externo;
-normalização, persistência, imagens e indexação serão encadeadas nessa porta pelos
-módulos seguintes. As execuções permanecem em memória até o repositório durável do
-Módulo 08.
+porta `CatalogItemProcessor`. O adapter atual valida, mapeia e normaliza o
+contrato externo; persistência, imagens e indexação serão encadeadas nessa porta
+pelos módulos seguintes. As execuções permanecem em memória até o repositório
+durável do Módulo 08.
 
-## MÓDULO 06 — Validação e normalização [ ]
+## MÓDULO 06 — Validação e normalização [x]
 
 ### Tarefas
 
-- [ ] Normalizar nome, descrição, preço, categoria e disponibilidade.
-- [ ] Normalizar unidade, URLs, imagens e identificador externo.
-- [ ] Tratar textos vazios e espaços.
-- [ ] Validar ID, preço e nome.
-- [ ] Definir fallback de descrição.
-- [ ] Registrar rejeições e testar cada regra.
+- [x] Normalizar nome, descrição, preço, categoria e disponibilidade.
+- [x] Normalizar unidade, URLs, imagens e identificador externo.
+- [x] Tratar textos vazios e espaços.
+- [x] Validar ID, preço e nome.
+- [x] Definir fallback de descrição.
+- [x] Registrar rejeições e testar cada regra.
 
 ### Gate
 
-- [ ] Inválidos são rejeitados de forma controlada.
-- [ ] Válidos geram um único formato interno.
-- [ ] Regras cobertas por testes.
+- [x] Inválidos são rejeitados de forma controlada.
+- [x] Válidos geram um único formato interno.
+- [x] Regras cobertas por testes.
+
+`NormalizeProductUseCase` produz o formato canônico antes de qualquer
+persistência: textos Unicode e espaços são normalizados, preços usam duas casas
+decimais, existe exatamente uma opção padrão e URLs de imagem precisam ser
+HTTP(S). Descrição ausente vira `Descrição não informada.`; moeda e estoque
+continuam ausentes quando a origem não os informa.
 
 ## MÓDULO 07 — Domínio de catálogo [ ]
 
