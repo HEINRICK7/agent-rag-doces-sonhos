@@ -209,9 +209,9 @@ StartCatalogSync
 
 O caso de uso controla o ciclo completo e delega o processamento unitário pela
 porta `CatalogItemProcessor`. O adapter atual valida, mapeia e normaliza o
-contrato externo; persistência, imagens e indexação serão encadeadas nessa porta
-pelos módulos seguintes. As execuções permanecem em memória até o repositório
-durável do Módulo 08.
+contrato externo e persiste o agregado; processamento de imagens e indexação
+serão encadeados nessa porta pelos módulos seguintes. Execuções e rejeições são
+persistidas pelo repositório durável criado no Módulo 08.
 
 ## MÓDULO 06 — Validação e normalização [x]
 
@@ -258,23 +258,28 @@ protegidos individualmente; snapshots externos continuam atualizando preço,
 disponibilidade, imagens e evidências da origem. `Money` preserva moeda
 desconhecida como `None`, sem assumir `BRL`.
 
-## MÓDULO 08 — PostgreSQL e SQLAlchemy [ ]
+## MÓDULO 08 — PostgreSQL e SQLAlchemy [x]
 
 ### Tarefas
 
-- [ ] Criar tabelas de produtos, categorias, imagens, execuções e erros.
-- [ ] Criar modelos SQLAlchemy 2.0 e migrations Alembic.
-- [ ] Criar mappers e contratos de repositório.
-- [ ] Implementar `SqlAlchemyProductRepository`.
-- [ ] Implementar upsert por ID externo, índices e constraints.
-- [ ] Criar testes de integração.
+- [x] Criar tabelas de produtos, categorias, imagens, execuções e erros.
+- [x] Criar modelos SQLAlchemy 2.0 e migrations Alembic.
+- [x] Criar mappers e contratos de repositório.
+- [x] Implementar `SqlAlchemyProductRepository`.
+- [x] Implementar upsert por ID externo, índices e constraints.
+- [x] Criar testes de integração.
 
 ### Gate
 
-- [ ] Migration sobe e desce.
-- [ ] Upsert não duplica.
-- [ ] Rollback funciona.
-- [ ] Testes passam.
+- [x] Migration sobe e desce.
+- [x] Upsert não duplica.
+- [x] Rollback funciona.
+- [x] Testes passam.
+
+A migration `0003_create_catalog` foi exercitada nos dois sentidos em banco
+isolado e aplicada no PostgreSQL local. O upsert mantém o UUID local, respeita
+campos protegidos e substitui preços e imagens na mesma transação. Um slot único
+e anulável garante somente uma sincronização ativa, sem limitar o histórico.
 
 ## MÓDULO 09 — Sincronização incremental [ ]
 

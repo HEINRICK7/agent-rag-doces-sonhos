@@ -4,6 +4,16 @@ import asyncio
 from logging.config import fileConfig
 
 from alembic import context
+from app.catalog.infrastructure.persistence.models import (  # noqa: F401
+    CategoryModel,
+    ProductImageModel,
+    ProductModel,
+    ProductPriceOptionModel,
+)
+from app.ingestion.infrastructure.persistence.models import (  # noqa: F401
+    CatalogSyncErrorModel,
+    CatalogSyncExecutionModel,
+)
 from app.shared.configuration.settings import get_settings
 from app.shared.infrastructure.database.base import Base
 from app.users.infrastructure.persistence.models import UserModel  # noqa: F401

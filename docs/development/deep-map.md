@@ -35,8 +35,8 @@ Os caminhos do código são classificados automaticamente:
 
 Essa classificação alimenta a seção **Clean Architecture** da sidebar.
 
-O cliente externo, seus métodos, schemas, mapper, processador e repositório em
-memória aparecem como nós de Infraestrutura. Os DTOs, portas e
+O cliente externo, seus métodos, schemas, mapper, processador e repositórios
+SQLAlchemy aparecem como nós de Infraestrutura. Os DTOs, portas e
 `StartCatalogSyncUseCase` aparecem como Aplicação; `CatalogSyncExecution` aparece
 como Domínio. Imports e chamadas detectáveis viram relações automaticamente, de
 modo que o fluxo do Módulo 05 é atualizado no mapa assim que esses arquivos ou
@@ -51,6 +51,13 @@ O Módulo 07 cria um novo domínio de Catálogo no mapa. O fluxo passa de
 `Product`, que se relaciona com `Money`, `ProductAvailability`,
 `ProductPriceOption` e `ProductImage`. Essas relações são detectadas diretamente
 pelos imports e chamadas, sem configuração visual manual.
+
+O Módulo 08 completa o caminho até o PostgreSQL. `ProductRepository` aparece
+como contrato do Domínio; `SqlAlchemyProductRepository`, modelos e mappers
+aparecem como Infraestrutura. O fluxo de sincronização também aponta para
+`SqlAlchemyCatalogSyncExecutionRepository`, `CatalogSyncExecutionModel` e
+`CatalogSyncErrorModel`, permitindo visualizar onde produtos e rejeições ficam
+armazenados.
 
 ## Atualização do roadmap
 

@@ -8,6 +8,10 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 from app.catalog.application.usecases.build_product_from_import import (
     BuildProductFromImportUseCase,
 )
+from app.catalog.domain.repositories.product_repository import ProductRepository
+from app.catalog.infrastructure.persistence.sqlalchemy_product_repository import (
+    SqlAlchemyProductRepository,
+)
 from app.ingestion.application.ports.catalog_item_processor import CatalogItemProcessor
 from app.ingestion.application.ports.catalog_sync_repository import (
     CatalogSyncExecutionRepository,
@@ -16,8 +20,8 @@ from app.ingestion.application.ports.product_source import ProductSource
 from app.ingestion.application.usecases.normalize_product import NormalizeProductUseCase
 from app.ingestion.application.usecases.start_catalog_sync import StartCatalogSyncUseCase
 from app.ingestion.infrastructure.external_api.product_api_client import ProductApiClient
-from app.ingestion.infrastructure.persistence.in_memory_catalog_sync_repository import (
-    InMemoryCatalogSyncExecutionRepository,
+from app.ingestion.infrastructure.persistence.sqlalchemy_catalog_sync_repository import (
+    SqlAlchemyCatalogSyncExecutionRepository,
 )
 from app.ingestion.infrastructure.pipeline.product_pipeline_processor import (
     ProductPipelineProcessor,
@@ -53,11 +57,13 @@ def build_container(
     product_source = ProductApiClient(settings)
     normalize_product = NormalizeProductUseCase()
     build_catalog_product = BuildProductFromImportUseCase()
+    product_repository = SqlAlchemyProductRepository(session_factory)
     catalog_item_processor = ProductPipelineProcessor(
         normalize_product,
         build_catalog_product,
+        product_repository,
     )
-    catalog_sync_executions = InMemoryCatalogSyncExecutionRepository()
+    catalog_sync_executions = SqlAlchemyCatalogSyncExecutionRepository(session_factory)
     start_catalog_sync = StartCatalogSyncUseCase(
         product_source,
         catalog_item_processor,
@@ -67,6 +73,7 @@ def build_container(
     container = punq.Container()
     container.register(Settings, instance=settings)
     container.register(ProductSource, instance=product_source)
+    container.register(ProductRepository, instance=product_repository)
     container.register(CatalogItemProcessor, instance=catalog_item_processor)
     container.register(CatalogSyncExecutionRepository, instance=catalog_sync_executions)
     container.register(NormalizeProductUseCase, instance=normalize_product)

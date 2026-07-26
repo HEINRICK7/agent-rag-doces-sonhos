@@ -108,9 +108,17 @@ internos será responsabilidade do pipeline/repositório.
 - referências externas de categoria prontas para resolução interna.
 
 O domínio também possui `Category`, `ProductImage`, `ProductPriceOption`,
-`ProductAvailability` e `Money`. A persistência das referências internas de
-categoria será adicionada no Módulo 08; até lá o agregado conserva os IDs
-externos normalizados.
+`ProductAvailability` e `Money`. O Módulo 08 persiste o agregado completo e
+conserva os IDs externos normalizados de categoria até que a sincronização de
+categorias possa resolvê-los para identidades locais.
+
+## Persistência
+
+`SqlAlchemyProductRepository` grava produto, opções comerciais e imagens em uma
+única transação. O índice único de `external_id` impede duplicidade. Em uma
+atualização, o UUID interno e os campos locais protegidos são preservados;
+preços e imagens são substituídos atomicamente. Falha em qualquer estágio
+reverte todo o agregado.
 
 ## Decisões pendentes
 

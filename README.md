@@ -42,13 +42,14 @@ sem acoplar aplicação ou domínio ao payload externo. O caso de uso
 contadores, isola falhas por produto, impede duas execuções simultâneas e permite
 reprocessamento. Antes dos próximos destinos, `NormalizeProductUseCase` limpa
 textos, valida identificadores, preços, estoque e imagens, e registra rejeições
-sem descartar o restante do lote. A execução fica em memória nesta etapa; o
-resultado normalizado é convertido no agregado de catálogo `Product`, composto
-por `Money`, opções comerciais, imagens e disponibilidade explícita. O domínio
-protege nome, descrição e categoria contra sobrescritas externas quando
-configurado. O Módulo 08 adicionará persistência durável. A chamada ao serviço
-real e decisões de moeda, remoção e armazenamento de imagem ainda são gates
-explícitos. Veja `docs/integrations/external-api.md`.
+sem descartar o restante do lote. O resultado normalizado é convertido no
+agregado de catálogo `Product`, composto por `Money`, opções comerciais, imagens
+e disponibilidade explícita. `SqlAlchemyProductRepository` executa upsert
+transacional por ID externo; execuções e rejeições também ficam no PostgreSQL.
+O domínio protege nome, descrição e categoria contra sobrescritas externas
+quando configurado. A chamada ao serviço real e decisões de moeda, remoção e
+armazenamento de imagem ainda são gates explícitos. Veja
+`docs/integrations/external-api.md`.
 
 ## Qualidade
 

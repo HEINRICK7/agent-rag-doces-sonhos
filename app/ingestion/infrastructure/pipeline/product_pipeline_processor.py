@@ -6,6 +6,7 @@ from app.catalog.application.usecases.build_product_from_import import (
     BuildProductFromImportUseCase,
 )
 from app.catalog.domain.entities.product import Product
+from app.catalog.domain.repositories.product_repository import ProductRepository
 from app.ingestion.application.ports.catalog_item_processor import CatalogItemProcessor
 from app.ingestion.application.usecases.normalize_product import NormalizeProductUseCase
 from app.ingestion.infrastructure.external_api.mapper import map_external_product
@@ -18,9 +19,11 @@ class ProductPipelineProcessor(CatalogItemProcessor):
         self,
         normalizer: NormalizeProductUseCase,
         product_builder: BuildProductFromImportUseCase,
+        products: ProductRepository,
     ) -> None:
         self._normalizer = normalizer
         self._product_builder = product_builder
+        self._products = products
 
     async def process(
         self,
@@ -30,4 +33,5 @@ class ProductPipelineProcessor(CatalogItemProcessor):
         del correlation_id
         mapped = map_external_product(payload)
         normalized = self._normalizer.execute(mapped)
-        return self._product_builder.execute(normalized)
+        product = self._product_builder.execute(normalized)
+        return await self._products.upsert(product)

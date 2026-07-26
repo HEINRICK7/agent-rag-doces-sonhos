@@ -31,6 +31,7 @@ from app.ingestion.infrastructure.pipeline.product_pipeline_processor import (
 )
 
 from tests.fixtures.fake_product_source import FakeProductSource
+from tests.fixtures.in_memory_product_repository import InMemoryProductRepository
 
 
 def product_payload(product_id: str) -> dict[str, object]:
@@ -126,6 +127,7 @@ class StartCatalogSyncUseCaseTestCase(unittest.IsolatedAsyncioTestCase):
             ProductPipelineProcessor(
                 NormalizeProductUseCase(),
                 BuildProductFromImportUseCase(),
+                InMemoryProductRepository(),
             ),
             self.repository,
             clock=lambda: next(self.times),
@@ -204,6 +206,7 @@ class StartCatalogSyncUseCaseTestCase(unittest.IsolatedAsyncioTestCase):
             ProductPipelineProcessor(
                 NormalizeProductUseCase(),
                 BuildProductFromImportUseCase(),
+                InMemoryProductRepository(),
             ),
             self.repository,
             clock=lambda: next(times),
