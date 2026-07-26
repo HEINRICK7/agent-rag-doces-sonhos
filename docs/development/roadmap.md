@@ -236,21 +236,27 @@ decimais, existe exatamente uma opção padrão e URLs de imagem precisam ser
 HTTP(S). Descrição ausente vira `Descrição não informada.`; moeda e estoque
 continuam ausentes quando a origem não os informa.
 
-## MÓDULO 07 — Domínio de catálogo [ ]
+## MÓDULO 07 — Domínio de catálogo [x]
 
 ### Tarefas
 
-- [ ] Criar `Product`, `Category`, `ProductImage`, `ProductAvailability` e `Money`.
-- [ ] Exigir ID e nome.
-- [ ] Impedir preço negativo.
-- [ ] Tornar disponibilidade explícita.
-- [ ] Implementar ativação, desativação e última sincronização.
-- [ ] Proteger dados críticos durante atualizações externas.
+- [x] Criar `Product`, `Category`, `ProductImage`, `ProductAvailability` e `Money`.
+- [x] Exigir ID e nome.
+- [x] Impedir preço negativo.
+- [x] Tornar disponibilidade explícita.
+- [x] Implementar ativação, desativação e última sincronização.
+- [x] Proteger dados críticos durante atualizações externas.
 
 ### Gate
 
-- [ ] Domínio não importa FastAPI, SQLAlchemy ou MinIO.
-- [ ] Cobertura do domínio acima de 90%.
+- [x] Domínio não importa FastAPI, SQLAlchemy ou MinIO.
+- [x] Cobertura do domínio acima de 90%.
+
+`Product` mantém identidade local e externa, opções comerciais, imagens,
+disponibilidade e datas de sincronização. Nome, descrição e categoria podem ser
+protegidos individualmente; snapshots externos continuam atualizando preço,
+disponibilidade, imagens e evidências da origem. `Money` preserva moeda
+desconhecida como `None`, sem assumir `BRL`.
 
 ## MÓDULO 08 — PostgreSQL e SQLAlchemy [ ]
 

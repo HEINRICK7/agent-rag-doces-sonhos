@@ -46,6 +46,12 @@ O Módulo 06 acrescenta `NormalizeProductUseCase` entre o mapper externo e os
 destinos do pipeline. Rejeições aparecem como relações e evidências da execução,
 enquanto o roadmap é atualizado automaticamente pelos checklists concluídos.
 
+O Módulo 07 cria um novo domínio de Catálogo no mapa. O fluxo passa de
+`NormalizeProductUseCase` para `BuildProductFromImportUseCase` e então para
+`Product`, que se relaciona com `Money`, `ProductAvailability`,
+`ProductPriceOption` e `ProductImage`. Essas relações são detectadas diretamente
+pelos imports e chamadas, sem configuração visual manual.
+
 ## Atualização do roadmap
 
 Edite somente

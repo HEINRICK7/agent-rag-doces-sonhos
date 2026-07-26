@@ -1,6 +1,6 @@
 # Contrato interno de produto
 
-Status: **contrato de ingestão v1 implementado; entidade de catálogo pendente**.
+Status: **contrato de ingestão e domínio de catálogo implementados**.
 
 O contrato interno não reproduz o Pydantic nem o formato da API externa. O
 mapper da infraestrutura valida o transporte e entrega dataclasses imutáveis à
@@ -94,9 +94,10 @@ internos será responsabilidade do pipeline/repositório.
 - campos desconhecidos são tolerados e registrados;
 - payload inválido produz `ExternalProductMappingError` explícito.
 
-## Entidade de catálogo planejada
+## Entidade de catálogo
 
-O Módulo 07 transformará a entrada normalizada em uma entidade persistível com:
+`BuildProductFromImportUseCase` transforma a entrada normalizada em um agregado
+`Product` com:
 
 - UUID interno;
 - `external_id` único por fonte;
@@ -104,14 +105,27 @@ O Módulo 07 transformará a entrada normalizada em uma entidade persistível co
 - histórico sem exclusão física;
 - `last_synced_at` e hash de origem;
 - imagem externa, copiada ou híbrida conforme decisão;
-- categoria resolvida para referência interna.
+- referências externas de categoria prontas para resolução interna.
+
+O domínio também possui `Category`, `ProductImage`, `ProductPriceOption`,
+`ProductAvailability` e `Money`. A persistência das referências internas de
+categoria será adicionada no Módulo 08; até lá o agregado conserva os IDs
+externos normalizados.
 
 ## Decisões pendentes
 
 - moeda padrão para preços sem `currency`;
 - política de produto removido ou desativado;
 - estratégia de imagem: externa, cópia ou híbrida;
-- campos protegidos contra sobrescrita externa.
+- estratégia definitiva de proteção configurável por operação administrativa.
+
+## Proteção contra sobrescrita
+
+`ProductProtectedField` permite proteger `name`, `description` e `category`.
+Durante `apply_external_snapshot`, esses campos permanecem locais quando
+protegidos. Identidade externa nunca muda; preços, disponibilidade, imagens,
+status e timestamps continuam pertencendo à sincronização. A proteção pode ser
+removida explicitamente.
 
 ## Regras de normalização decididas
 

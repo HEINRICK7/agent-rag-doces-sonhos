@@ -5,6 +5,9 @@ from minio import Minio
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
+from app.catalog.application.usecases.build_product_from_import import (
+    BuildProductFromImportUseCase,
+)
 from app.ingestion.application.ports.catalog_item_processor import CatalogItemProcessor
 from app.ingestion.application.ports.catalog_sync_repository import (
     CatalogSyncExecutionRepository,
@@ -49,7 +52,11 @@ def build_container(
     infrastructure_health = InfrastructureHealth(engine, redis, minio, settings.minio_bucket)
     product_source = ProductApiClient(settings)
     normalize_product = NormalizeProductUseCase()
-    catalog_item_processor = ProductPipelineProcessor(normalize_product)
+    build_catalog_product = BuildProductFromImportUseCase()
+    catalog_item_processor = ProductPipelineProcessor(
+        normalize_product,
+        build_catalog_product,
+    )
     catalog_sync_executions = InMemoryCatalogSyncExecutionRepository()
     start_catalog_sync = StartCatalogSyncUseCase(
         product_source,
@@ -63,6 +70,7 @@ def build_container(
     container.register(CatalogItemProcessor, instance=catalog_item_processor)
     container.register(CatalogSyncExecutionRepository, instance=catalog_sync_executions)
     container.register(NormalizeProductUseCase, instance=normalize_product)
+    container.register(BuildProductFromImportUseCase, instance=build_catalog_product)
     container.register(StartCatalogSyncUseCase, instance=start_catalog_sync)
     container.register(UserRepository, instance=repository)
     container.register(CreateUserUseCase, instance=CreateUserUseCase(repository))

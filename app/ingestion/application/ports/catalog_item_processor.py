@@ -3,7 +3,7 @@
 from collections.abc import Mapping
 from typing import Protocol
 
-from app.ingestion.application.dto.product_input import ProductImportInput
+from app.catalog.domain.entities.product import Product
 
 
 class CatalogItemProcessor(Protocol):
@@ -13,4 +13,4 @@ class CatalogItemProcessor(Protocol):
         self,
         payload: Mapping[str, object],
         correlation_id: str,
-    ) -> ProductImportInput: ...
+    ) -> Product: ...

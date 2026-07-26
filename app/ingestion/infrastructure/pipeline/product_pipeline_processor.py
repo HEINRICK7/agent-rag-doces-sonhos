@@ -2,7 +2,10 @@
 
 from collections.abc import Mapping
 
-from app.ingestion.application.dto.product_input import ProductImportInput
+from app.catalog.application.usecases.build_product_from_import import (
+    BuildProductFromImportUseCase,
+)
+from app.catalog.domain.entities.product import Product
 from app.ingestion.application.ports.catalog_item_processor import CatalogItemProcessor
 from app.ingestion.application.usecases.normalize_product import NormalizeProductUseCase
 from app.ingestion.infrastructure.external_api.mapper import map_external_product
@@ -11,14 +14,20 @@ from app.ingestion.infrastructure.external_api.mapper import map_external_produc
 class ProductPipelineProcessor(CatalogItemProcessor):
     """Map and normalize one product before future persistence and indexing stages."""
 
-    def __init__(self, normalizer: NormalizeProductUseCase) -> None:
+    def __init__(
+        self,
+        normalizer: NormalizeProductUseCase,
+        product_builder: BuildProductFromImportUseCase,
+    ) -> None:
         self._normalizer = normalizer
+        self._product_builder = product_builder
 
     async def process(
         self,
         payload: Mapping[str, object],
         correlation_id: str,
-    ) -> ProductImportInput:
+    ) -> Product:
         del correlation_id
         mapped = map_external_product(payload)
-        return self._normalizer.execute(mapped)
+        normalized = self._normalizer.execute(mapped)
+        return self._product_builder.execute(normalized)

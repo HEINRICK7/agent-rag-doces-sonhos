@@ -1,0 +1,1 @@
+"""Pure catalog business model."""

@@ -5,6 +5,9 @@ import unittest
 from collections.abc import AsyncIterator
 from datetime import UTC, datetime, timedelta
 
+from app.catalog.application.usecases.build_product_from_import import (
+    BuildProductFromImportUseCase,
+)
 from app.ingestion.application.dto.catalog_sync import StartCatalogSyncCommand
 from app.ingestion.application.dto.external_product_page import (
     ExternalProductPage,
@@ -120,7 +123,10 @@ class StartCatalogSyncUseCaseTestCase(unittest.IsolatedAsyncioTestCase):
     def build_use_case(self, source: ProductSource) -> StartCatalogSyncUseCase:
         return StartCatalogSyncUseCase(
             source,
-            ProductPipelineProcessor(NormalizeProductUseCase()),
+            ProductPipelineProcessor(
+                NormalizeProductUseCase(),
+                BuildProductFromImportUseCase(),
+            ),
             self.repository,
             clock=lambda: next(self.times),
             id_factory=lambda: "sync-1",
@@ -195,7 +201,10 @@ class StartCatalogSyncUseCaseTestCase(unittest.IsolatedAsyncioTestCase):
         )
         use_case = StartCatalogSyncUseCase(
             source,
-            ProductPipelineProcessor(NormalizeProductUseCase()),
+            ProductPipelineProcessor(
+                NormalizeProductUseCase(),
+                BuildProductFromImportUseCase(),
+            ),
             self.repository,
             clock=lambda: next(times),
             id_factory=lambda: next(ids),

@@ -8,7 +8,7 @@ pelo Deep Map.
 
 - Fundação funcional com API, módulo de usuários, SQLAlchemy, Alembic, Docker,
   testes, CI e documentação.
-- Mais de 60 testes na suíte padrão, teste real de infraestrutura aprovado e
+- Mais de 75 testes na suíte padrão, teste real de infraestrutura aprovado e
   cobertura total acima do gate de 80%.
 - Ruff, MyPy estrito, formatação e regras arquiteturais aprovados.
 - PostgreSQL, pgvector 0.8.0, Redis e MinIO validados em containers saudáveis.
@@ -22,5 +22,7 @@ pelo Deep Map.
   tolera evolução de campos e não acopla aplicação ou domínio ao Pydantic.
 - O pipeline percorre a fonte, controla concorrência e reprocessamento, registra
   falhas por item e normaliza produtos em um contrato canônico.
+- O domínio de catálogo modela produtos, categorias, preços, imagens,
+  disponibilidade, sincronização e proteção contra sobrescrita externa.
 - A validação contra a API em execução continua pendente; moeda, política de
   remoção e permanência das imagens ainda exigem decisão.
