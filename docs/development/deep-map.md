@@ -14,6 +14,15 @@ Os arquivos Markdown alimentam duas áreas:
    status e checklists são transformados em módulos, tarefas, progresso e
    bloqueios sequenciais.
 
+O snapshot também registra `createdAt` e `updatedAt` em arquivos, componentes e
+eventos. A Timeline usa esses eventos e abre por padrão no período **Hoje**; a
+conversão da data é feita no fuso local da interface.
+
+Dados de negócio vindos da API não substituem datas do workspace. O contrato de
+ingestão preserva separadamente `source_created_at` e `source_updated_at` para
+que os próximos módulos possam mostrar quando produtos, categorias e
+subcategorias surgiram ou mudaram na origem.
+
 ## Clean Architecture
 
 Os caminhos do código são classificados automaticamente:
@@ -25,6 +34,12 @@ Os caminhos do código são classificados automaticamente:
 - `app/bootstrap.py` → Composição.
 
 Essa classificação alimenta a seção **Clean Architecture** da sidebar.
+
+O cliente externo, seus métodos, schemas e mapper aparecem como nós de
+Infraestrutura; os DTOs e o contrato `ProductSource` aparecem como Aplicação.
+Imports e chamadas detectáveis viram relações automaticamente. Um fluxo de
+execução completo somente será criado quando o Módulo 05 adicionar o caso de
+uso que orquestra origem, mapper e destinos.
 
 ## Atualização do roadmap
 

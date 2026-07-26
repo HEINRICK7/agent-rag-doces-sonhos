@@ -29,6 +29,18 @@ no ambiente de desenvolvimento.
 As portas externas da API, banco, Redis, MinIO e console do MinIO podem ser
 alteradas no `.env` sem mudar a rede interna dos containers.
 
+## Ingestão externa
+
+O módulo `ingestion` já fornece cliente e mapper substituíveis para a API Doces
+Sonhos. O contrato confirmado usa `http://localhost:3002`, listas JSON diretas
+sem paginação e filtros `search`, `categoryId` e `subcategoryId`. O cliente
+também implementa timeout, retry, correlation ID e autenticação opcional.
+
+O mapper preserva preços como `Decimal`, timestamps e referências de categoria,
+sem acoplar aplicação ou domínio ao payload externo. A chamada ao serviço em
+execução e decisões de moeda, remoção e imagem ainda são gates explícitos. Veja
+`docs/integrations/external-api.md`.
+
 ## Qualidade
 
 ```bash

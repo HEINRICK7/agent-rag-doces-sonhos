@@ -2,7 +2,6 @@
 ruff==0.12.7
 mypy==1.17.1
 coverage==7.10.1
-httpx==0.28.1
 pre-commit==4.2.0
 types-psycopg2==2.9.21.20250718
 aiosqlite==0.21.0

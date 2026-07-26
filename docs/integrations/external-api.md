@@ -1,63 +1,140 @@
 # API externa de produtos
 
-Status: **diagnóstico em andamento — integração ainda não autorizada**.
+Status: **contrato confirmado no código-fonte; validação ao vivo pendente**.
 
-Este documento registra somente fatos confirmados sobre a fonte externa. Campos
-desconhecidos permanecem explícitos para impedir que o cliente seja desenvolvido
-com suposições.
+O contrato foi conferido em 24 de julho de 2026 no repositório local
+`../doces-sonhos-api`, por meio dos controllers, services, DTOs, schema Prisma e
+referência Swagger. A API não estava disponível durante a primeira conferência,
+portanto os fatos abaixo descrevem a implementação verificada, não uma captura
+de ambiente.
 
 ## Acesso
 
 | Item | Estado | Valor |
 | --- | --- | --- |
-| URL base | não informado | — |
-| Ambiente de homologação | não informado | — |
-| Autenticação | não informada | — |
-| Endpoint de produtos | não informado | — |
-| Rate limit | não informado | — |
-| Timeout recomendado | não informado | — |
+| URL base local | confirmado | `http://localhost:3002` |
+| Prefixo global | confirmado | nenhum; `/api` é apenas o Swagger |
+| Autenticação nas rotas | não exigida no código verificado | `none` |
+| Autenticação opcional | suportada pelo cliente | `Bearer` ou API key |
+| Produtos | confirmado | `GET /products` |
+| Paginação | confirmado | lista JSON direta, sem paginação |
+| Filtros | confirmado | `search`, `categoryId`, `subcategoryId` |
+| Rate limit | não encontrado no código verificado | cliente trata `429` defensivamente |
+| Timeout local | decisão interna | 10 segundos por padrão |
 
-Credenciais e tokens nunca devem ser adicionados a este documento. Use variáveis
-de ambiente e registre aqui somente o nome dos headers ou o mecanismo de
-autenticação.
+Credenciais e tokens nunca devem ser adicionados a este documento. Ambientes
+com autenticação na frente da API devem usar exclusivamente variáveis de
+ambiente.
 
-## Contratos que precisam de payload real
+## Rotas confirmadas
 
-- listagem de produtos;
-- detalhe de um produto;
-- paginação vazia, inicial e final;
-- produto indisponível;
-- produto sem imagem ou descrição;
-- erros `401`, `403`, `404`, `429` e `5xx`;
-- resposta inválida ou incompleta.
+| Método | Rota | Resultado |
+| --- | --- | --- |
+| `GET` | `/products` | lista direta de produtos ativos |
+| `GET` | `/products/{id}` | detalhe de um produto ativo |
+| `GET` | `/categories` | lista direta de categorias |
+| `GET` | `/categories/{categoryId}/subcategories` | subcategorias da categoria |
 
-## Perguntas obrigatórias
+`GET /products` aceita os filtros opcionais `search`, `categoryId` e
+`subcategoryId`. Não existem `page`, `limit`, cursor ou envelope de paginação
+na versão verificada.
 
-1. A paginação usa página, offset, cursor ou link?
-2. O identificador externo é estável?
-3. Preço é inteiro, decimal ou texto? Em qual moeda?
-4. Estoque representa quantidade ou apenas disponibilidade?
-5. Imagens são públicas, assinadas ou expiram?
-6. Existe data de alteração, versão, hash ou ETag?
-7. Produtos removidos deixam de aparecer ou recebem status?
-8. Há categorias hierárquicas?
-9. Campos desconhecidos podem aparecer sem versionamento?
-10. Existe webhook ou a sincronização precisa ser consultiva?
+## Contrato de produto confirmado
 
-## Evidências aguardadas
+| Campo | Tipo | Regra |
+| --- | --- | --- |
+| `id` | UUID em string | identificador externo estável |
+| `name` | string | obrigatório |
+| `description` | string ou `null` | opcional |
+| `image` | string ou `null` | imagem única opcional |
+| `categoryId` | UUID em string ou `null` | categoria opcional |
+| `subcategoryId` | UUID em string ou `null` | subcategoria opcional |
+| `isActive` | boolean | a listagem retorna somente ativos |
+| `priceOptions` | lista | ao menos uma opção comercial |
+| `createdAt` | datetime | disponível na origem |
+| `updatedAt` | datetime | disponível na origem |
 
-- [ ] documentação oficial ou coleção da API;
-- [ ] URL base de homologação;
-- [ ] mecanismo de autenticação;
-- [ ] payloads reais anonimizados;
-- [ ] regras de paginação e filtros;
-- [ ] limites e política de retry;
-- [ ] exemplos de erro.
+Cada item de `priceOptions` contém `id`, `label`, `quantity`, `unit`, `price` e
+`isDefault`. O preço é `Decimal(10,2)` no schema Prisma e permanece `Decimal`
+internamente.
 
-## Riscos iniciais
+`currency` e `stockQuantity` não existem no schema Prisma atualmente
+verificado. O mapper aceita esses campos caso um ambiente ou uma versão futura
+os envie, mas não inventa moeda nem estoque quando estiverem ausentes.
 
-- ausência de identificador estável pode impedir upsert idempotente;
-- ausência de versão ou data de alteração pode exigir comparação por hash;
+## Categorias e subcategorias
+
+Categoria contém `id`, `name`, `icon`, `image`, `isActive`, `position`,
+`createdAt` e `updatedAt`. Subcategoria contém `id`, `name`, `categoryId`,
+`createdAt` e `updatedAt`.
+
+## Cliente e mapper implementados
+
+O `ProductApiClient` consome as listas diretas, aplica os filtros confirmados e
+também consulta detalhe, categorias e subcategorias. Continuam disponíveis:
+
+- autenticação opcional por bearer ou API key;
+- timeout, retry exponencial limitado e `Retry-After`;
+- propagação de `X-Correlation-ID`;
+- proteção contra links de paginação de outra origem;
+- erros distintos para autenticação, rate limit, indisponibilidade, outros 4xx
+  e JSON inválido;
+- fake substituível pelo contrato `ProductSource`.
+
+O mapper externo → interno:
+
+- preserva preço como `Decimal`;
+- carrega IDs de categoria e subcategoria sem acoplar o domínio ao Pydantic;
+- converte a imagem única em imagem principal;
+- preserva `createdAt` e `updatedAt`;
+- registra campos desconhecidos como evidência ignorada;
+- não assume moeda ou estoque inexistentes.
+
+Configuração local:
+
+```dotenv
+EXTERNAL_API_BASE_URL=http://localhost:3002
+EXTERNAL_API_PRODUCTS_PATH=/products
+EXTERNAL_API_AUTH_MODE=none
+EXTERNAL_API_PAGINATION_MODE=none
+```
+
+Dentro do Docker, use `http://host.docker.internal:3002`; o Compose já registra
+o alias `host-gateway`.
+
+## Erros tratados
+
+- `401` e `403`: credenciais rejeitadas quando existir autenticação frontal;
+- `404`: produto ativo não encontrado;
+- `429`: limite temporário, tratado defensivamente;
+- `5xx`: indisponibilidade temporária;
+- JSON inválido ou payload incompleto: erro explícito de transporte/mapeamento.
+
+## Decisões ainda pendentes
+
+1. Qual moeda deve ser associada aos preços sem `currency`?
+2. A URL de imagem é permanente ou deve ser copiada para o MinIO?
+3. Como detectar produto removido ou desativado, já que a listagem só expõe
+   produtos ativos?
+4. Há rate limit, autenticação frontal ou política de retry no ambiente real?
+5. Existe webhook ou a sincronização será sempre consultiva?
+
+## Evidências
+
+- [x] código-fonte e referência Swagger;
+- [x] URL base local;
+- [x] mecanismo de autenticação das rotas verificadas;
+- [x] exemplos de payload fornecidos no handoff;
+- [x] regras de paginação e filtros;
+- [x] exemplos e política interna para erros;
+- [ ] resposta capturada da API em execução;
+- [ ] limites do ambiente de produção.
+
+## Riscos conhecidos
+
+- a listagem somente de ativos exige política explícita de desativação local;
+- preço sem moeda não pode se transformar em `Money` definitivo sem decisão de
+  negócio;
 - URLs temporárias de imagem podem exigir cópia para MinIO;
-- preço sem moeda ou precisão definida pode gerar perda de informação;
-- ausência de sinal de remoção exige política de desativação local.
+- campos opcionais podem surgir sem versionamento;
+- o contrato no código-fonte pode divergir do ambiente até a validação ao vivo.

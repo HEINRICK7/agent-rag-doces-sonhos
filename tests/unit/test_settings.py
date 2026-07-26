@@ -30,6 +30,16 @@ class SettingsTestCase(unittest.TestCase):
         with self.assertRaises(PydanticValidationError):
             Settings(_env_file=None, minio_endpoint="")
 
+    def test_validates_external_api_settings_without_requiring_credentials(self) -> None:
+        settings = Settings(_env_file=None, external_api_base_url="")
+
+        self.assertIsNone(settings.external_api_base_url)
+        self.assertEqual(settings.external_api_pagination_mode, "none")
+        with self.assertRaises(PydanticValidationError):
+            Settings(_env_file=None, external_api_base_url="catalog.example.test")
+        with self.assertRaises(PydanticValidationError):
+            Settings(_env_file=None, external_api_page_size=0)
+
     def test_rejects_debug_and_docs_in_production(self) -> None:
         with self.assertRaises(PydanticValidationError):
             Settings(_env_file=None, app_env="production", app_debug=True)

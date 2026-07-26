@@ -5,6 +5,8 @@ from minio import Minio
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
+from app.ingestion.application.ports.product_source import ProductSource
+from app.ingestion.infrastructure.external_api.product_api_client import ProductApiClient
 from app.shared.configuration.settings import Settings
 from app.shared.infrastructure.database.session import create_engine, create_session_factory
 from app.shared.infrastructure.observability.health import InfrastructureHealth
@@ -19,7 +21,7 @@ from app.users.infrastructure.persistence.sqlalchemy_user_repository import SqlA
 
 def build_container(
     settings: Settings,
-) -> tuple[punq.Container, AsyncEngine, InfrastructureHealth]:
+) -> tuple[punq.Container, AsyncEngine, InfrastructureHealth, ProductApiClient]:
     """Build all infrastructure and application dependencies in one place."""
 
     engine = create_engine(settings.database_url)
@@ -33,9 +35,11 @@ def build_container(
         secure=settings.minio_secure,
     )
     infrastructure_health = InfrastructureHealth(engine, redis, minio, settings.minio_bucket)
+    product_source = ProductApiClient(settings)
 
     container = punq.Container()
     container.register(Settings, instance=settings)
+    container.register(ProductSource, instance=product_source)
     container.register(UserRepository, instance=repository)
     container.register(CreateUserUseCase, instance=CreateUserUseCase(repository))
     container.register(GetUserUseCase, instance=GetUserUseCase(repository))
@@ -43,4 +47,4 @@ def build_container(
     container.register(UpdateUserNameUseCase, instance=UpdateUserNameUseCase(repository))
     container.register(DeactivateUserUseCase, instance=DeactivateUserUseCase(repository))
     container.register(InfrastructureHealth, instance=infrastructure_health)
-    return container, engine, infrastructure_health
+    return container, engine, infrastructure_health, product_source

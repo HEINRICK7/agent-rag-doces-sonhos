@@ -61,13 +61,18 @@ app/
 │   │   └── repositories/
 │   ├── application/
 │   │   ├── dto/
+│   │   ├── ports/product_source.py
+│   │   ├── exceptions.py
 │   │   └── usecases/
 │   │       ├── import_catalog.py
 │   │       ├── normalize_product.py
 │   │       ├── synchronize_images.py
 │   │       └── index_product.py
 │   ├── infrastructure/
-│   │   ├── external_api/product_api_client.py
+│   │   ├── external_api/
+│   │   │   ├── product_api_client.py
+│   │   │   ├── schemas.py
+│   │   │   └── mapper.py
 │   │   └── jobs/catalog_sync_job.py
 │   └── entrypoints/api/router.py
 ├── rag/

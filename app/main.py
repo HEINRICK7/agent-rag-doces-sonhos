@@ -40,11 +40,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     app_settings = settings or get_settings()
     configure_logging(app_settings.log_level)
-    container, engine, infrastructure_health = build_container(app_settings)
+    container, engine, infrastructure_health, product_source = build_container(app_settings)
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         yield
+        await product_source.close()
         await infrastructure_health.close()
         await engine.dispose()
 
@@ -59,6 +60,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.container = container
     app.state.engine = engine
     app.state.infrastructure_health = infrastructure_health
+    app.state.product_source = product_source
 
     if app_settings.cors_origins:
         app.add_middleware(

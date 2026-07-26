@@ -6,6 +6,7 @@ from pathlib import Path
 RULES: dict[str, set[str]] = {
     "app/users/domain": {"fastapi", "pydantic", "sqlalchemy", "punq"},
     "app/users/application": {"fastapi", "sqlalchemy", "punq"},
+    "app/ingestion/application": {"fastapi", "httpx", "punq", "sqlalchemy"},
 }
 
 

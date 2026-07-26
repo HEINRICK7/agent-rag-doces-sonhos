@@ -73,23 +73,23 @@ Entender a API externa e definir contratos antes de implementar a integração.
 
 ### Tarefas
 
-- [ ] Identificar URL base e autenticação.
-- [ ] Capturar payloads reais.
-- [ ] Mapear paginação, filtros e rate limit.
-- [ ] Mapear IDs, preço, disponibilidade e imagens.
-- [ ] Registrar campos obrigatórios e opcionais.
-- [ ] Documentar inconsistências e riscos.
-- [~] Definir o contrato interno de produto.
-- [~] Criar `docs/integrations/external-api.md`.
-- [~] Criar `docs/contracts/product-contract.md`.
+- [x] Identificar URL base e autenticação no código da origem.
+- [~] Capturar payloads reais: exemplos confirmados; chamada ao vivo pendente.
+- [x] Mapear paginação, filtros e tratamento defensivo de rate limit.
+- [x] Mapear IDs, preço, disponibilidade e imagens.
+- [x] Registrar campos obrigatórios e opcionais.
+- [x] Documentar inconsistências e riscos.
+- [x] Definir o contrato interno de entrada do produto.
+- [x] Criar `docs/integrations/external-api.md`.
+- [x] Criar `docs/contracts/product-contract.md`.
 - [x] Registrar o contexto inicial da arquitetura.
 
 ### Gate
 
-- [ ] Payload real documentado.
-- [ ] Autenticação e paginação compreendidas.
-- [ ] Campos críticos mapeados.
-- [ ] Riscos registrados.
+- [ ] Resposta da API em execução documentada.
+- [x] Autenticação e paginação compreendidas.
+- [x] Campos críticos mapeados.
+- [x] Riscos registrados.
 
 ## MÓDULO 01 — Fundação da aplicação [x]
 
@@ -144,38 +144,38 @@ reproduzível.
 - [x] pgvector está disponível.
 - [x] Volumes persistem dados.
 
-## MÓDULO 03 — Cliente da API externa [ ]
+## MÓDULO 03 — Cliente da API externa [~]
 
 ### Tarefas
 
-- [ ] Criar cliente, autenticação, schemas, exceções e retry em `ingestion`.
-- [ ] Implementar timeout, retry limitado, paginação e headers.
-- [ ] Propagar correlation ID.
-- [ ] Tratar 4xx, 5xx e JSON inválido.
-- [ ] Criar cliente fake e testes com `unittest.mock`.
+- [x] Criar cliente, autenticação, schemas, exceções e retry em `ingestion`.
+- [x] Implementar timeout, retry limitado, paginação e headers.
+- [x] Propagar correlation ID.
+- [x] Tratar 4xx, 5xx e JSON inválido.
+- [x] Criar cliente fake e testes com `unittest.mock`.
 
 ### Gate
 
 - [ ] Conexão real validada.
-- [ ] Paginação e erros testados.
-- [ ] Cliente substituível por fake.
-- [ ] Cliente não salva, normaliza ou contém regra de negócio.
+- [x] Paginação e erros testados.
+- [x] Cliente substituível por fake.
+- [x] Cliente não salva, normaliza ou contém regra de negócio.
 
-## MÓDULO 04 — Mapeamento externo para interno [ ]
+## MÓDULO 04 — Mapeamento externo para interno [x]
 
 ### Tarefas
 
-- [ ] Criar schemas externos e DTO interno.
-- [ ] Mapear nomes, tipos, categorias, status e imagens.
-- [ ] Mapear preço e disponibilidade.
-- [ ] Registrar campos ignorados.
-- [ ] Testar payload incompleto e campos desconhecidos.
+- [x] Criar schemas externos e DTO interno.
+- [x] Mapear nomes, tipos, categorias, status e imagens.
+- [x] Mapear preço e disponibilidade sem inventar moeda ou estoque.
+- [x] Registrar campos ignorados.
+- [x] Testar payload incompleto e campos desconhecidos.
 
 ### Gate
 
-- [ ] Domínio não depende do payload externo.
-- [ ] Mapper testado.
-- [ ] Contratos documentados.
+- [x] Domínio não depende do payload externo.
+- [x] Mapper testado.
+- [x] Contratos documentados.
 
 ## MÓDULO 05 — Pipeline de ingestão [ ]
 
